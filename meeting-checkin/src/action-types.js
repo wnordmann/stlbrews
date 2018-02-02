@@ -1,0 +1,3 @@
+export const MEMBERACTIONS = {
+  SET_MEMBERS: 'SET_MEMBERS',
+};
