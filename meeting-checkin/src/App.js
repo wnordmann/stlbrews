@@ -17,9 +17,8 @@ class App extends Component {
     return (
       <Provider store={store}>
         <div className="App">
-          <header className="App-header">
-            <img src={logo} className="App-logo" alt="logo" />
-            <h1 className="App-title">Welcome to React</h1>
+          <header >
+            <h1 className="App-title">Welcome to St. Louis Brews Meeting</h1>
           </header>
           <div className="App-intro">
             <MemberList/>

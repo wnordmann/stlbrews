@@ -2,29 +2,24 @@ import React from 'react';
 
 import {connect} from 'react-redux';
 import {setSelectedFeatures} from './actions';
-import Select from 'react-select';
-import 'react-select/dist/react-select.css';
 
 class MemberList extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      MemberId: '000',
-      FeePaid: '0',
+      MemberId: '',
+      FeePaid: '5',
       BroughtBeer: '0',
       AttendedMeeting: '0',
       MonthNum: '0',
       YearNum: '0',
-      FirstName: 'first',
-      LastName: 'last',
+      FirstName: '',
+      LastName: '',
+      selected: false,
+      filterData: [],
     };
 
-    this.handleMemberIdChange = this.handleMemberIdChange.bind(this);
-    this.handleLastNameChange = this.handleLastNameChange.bind(this);
-    this.handleFirstNameChange = this.handleFirstNameChange.bind(this);
-    this.handleFeePaidChange = this.handleFeePaidChange.bind(this);
-    this.handleBroughtBeerChange = this.handleBroughtBeerChange.bind(this);
-    this.postTest = this.postTest.bind(this);
+    this.checkIn = this.checkIn.bind(this);
   }
 
   componentWillMount(){
@@ -35,43 +30,38 @@ class MemberList extends React.Component {
         this.props.dispatch(setSelectedFeatures(members));
       });
   }
-
-
-  handleFeePaidChange(event) {
-    this.setState({FeePaid: event.target.value});
+  handleMemberIdChange = (event) => {
+    this.setState({MemberId: event.target.value});
   }
-  handleBroughtBeerChange(event) {
-    this.setState({BroughtBeer: event.target.value});
+  handleLastNameChange = (event) => {
+    this.setState({LastName: event.target.value});
   }
-
-  handleMemberIdChange = (selectedOption) => {
-    this.setState({MemberId: selectedOption.label});
+  handleFirstNameChange = (event) => {
+    this.setState({FirstName: event.target.value});
   }
-  handleLastNameChange = (selectedOption) => {
-    this.setState({
-      LastName: selectedOption.label,
-      MemberId: selectedOption.value
-    });
-  }
-  handleFirstNameChange = (selectedOption) => {
-    this.setState({
-      FirstName: selectedOption.label,
-      MemberId: selectedOption.value
-    });
-  }
-  // handleChange = (selectedOption) => {
-  //   // this.setState({ selectedOption });
-  //   console.log(`Selected: ${selectedOption.label}`);
+  // shouldComponentUpdate(nextProps, nextState){
+  //   let filter = {
+  //     FirstName: nextState.FirstName,
+  //     LastName: nextState.LastName,
+  //     MemberId: nextState.MemberId
+  //   }
+  //   const filterData = this.filterMemberData(filter);
+  //   if(nextState.filterData.length !== filterData.length){
+  //     this.setState({filterData});
+  //     return true;
+  //   }
+  //   return false;
   // }
-  postTest(){
+  checkIn(){
     const url = 'http://localhost:3000/api/v1/checkin';
+    const today = new Date();
     const data = {
       MemberId: this.state.MemberId,
       FeePaid: this.state.FeePaid,
       BroughtBeer: this.state.BroughtBeer,
       AttendedMeeting: '1',
-      MonthNum: '2',
-      YearNum: '2018'
+      MonthNum: today.getMonth() + 1,
+      YearNum: today.getFullYear(),
     }
 
     fetch(url, {
@@ -84,77 +74,100 @@ class MemberList extends React.Component {
     .catch(error => console.error('Error:', error))
     .then(response => console.log('Success:', response));
   }
-  buildTable(filter){
-      const members = this.props.members.members;
-      filter = {firstName:"Will"}
-      //(["MemberID", "last_name", "first_name", "Address", "City", "State", "Zip", "HPhone", "MPhone", "Email", "2009 Dues Pd", "2010 Dues Pd", "2011 Dues Pd", "2012 Dues Pd", "2013 Dues Paid", "2014 Dues Paid", "2015 Dues Paid", "2016 Dues Paid", "2017 Dues Paid", "2018_Dues_Paid", "2016 Meeting Fees Paid", "2017 Meeting Fees Paid", "StatusCode", "BYO", "BYO 2013", "2010 HHHC Glass"]
-      if(members.length > 0){
-        const data = []
-        for (let i = 0, ii = members.length; i < ii; i++) {
-          const firstName = members[i].first_name;
-          const lastName = members[i].last_name;
-          const memberId = members[i].MemberID;
-          const regEx = new RegExp(filter.firstName);
-          if(firstName.match(regEx)){
-            data.push (<tr key={memberId}><td>{memberId}</td><td>{firstName}</td><td>{lastName}</td></tr>);
-          }
+  filterMemberData(filter){
+    const members = this.props.members.members;
+    // const filter = this.state;
+    if(members.length > 0){
+      const filterData = [];
+
+      // Set up regular expressions for each key value
+      // Check aginst values entered in the form and put into state
+      const firstNameRegEx = new RegExp(filter.FirstName, "i");
+      const lastNameRegEx = new RegExp(filter.LastName, "i");
+      const memberIdNameRegEx = new RegExp(filter.MemberId.toString());
+
+
+      for (let i = 0, ii = members.length; i < ii; i++) {
+        // Get important memeber info from db
+        const firstName = members[i].first_name;
+        const lastName = members[i].last_name;
+        const memberId = members[i].MemberID.toString();
+
+        // Set up regular expressions for each key value
+        // Check aginst values entered in the form and put into state
+        // const firstNameRegEx = new RegExp(filter.FirstName, "i");
+        // const lastNameRegEx = new RegExp(filter.LastName, "i");
+        // const memberIdNameRegEx = new RegExp(filter.MemberId.toString());
+
+        // Check regular expressions, only add data if the regex is good
+        if(firstName.match(firstNameRegEx) && lastName.match(lastNameRegEx) && memberId.match(memberIdNameRegEx)){
+          // build the table data
+          // data.push (<tr key={memberId}><td>{memberId}</td><td>{firstName}</td><td>{lastName}</td></tr>);
+          filterData.push ({memberId, firstName, lastName});
         }
-        return (
-          <table>
-          <tbody>
-            {data}
-          </tbody>
-          </table>
-        )
       }
+      // if(filterData.length === 1){
+      //   this.setState({selected: true});
+      // } else {
+      //   this.setState({selected: false});
+      // }
+      return filterData;
+    }
+    return [];
+  }
+  buildTable(){
+    let filter = {
+      FirstName: this.state.FirstName,
+      LastName: this.state.LastName,
+      MemberId: this.state.MemberId
+    }
+    const members = this.filterMemberData(filter);
+    // const members = this.state.filterData;
+    const data = [];
+    if(members.length > 0){
+
+      for (let i = 0, ii = members.length; i < ii; i++) {
+        data.push (<tr key={members[i].memberId}><td>{members[i].memberId}</td><td>{members[i].firstName}</td><td>{members[i].lastName}</td></tr>);
+      }
+      return (
+        <table>
+        <tbody>
+          {data}
+        </tbody>
+        </table>
+      )
+    }
+    return false;
   }
   render() {
     const table = this.buildTable();
-  const selecttor = (  <div>			<div className="section">
-    				<h3 className="section-heading">First Name</h3>
-            <Select
-              name="First Name"
-              value={this.state.FirstName}
-              onChange={this.handleFirstNameChange}
-              options={this.props.members.firstNames}
-            />
-          </div>
-          <div className="section">
-    				<h3 className="section-heading">Last Name</h3>
-            <Select
-              name="Last Name"
-              value={this.state.LastName}
-              onChange={this.handleLastNameChange}
-              options={this.props.members.lastNames}
-            />
-          </div>
-          <div className="section">
-    				<h3 className="section-heading">Member Is</h3>
-            <Select
-              name="MemberId"
-              value={this.state.MemberId}
-              onChange={this.handleMemberIdChange}
-              options={this.props.members.memberIds}
-            />
-          </div></div>);
-    // const memberIds = this.props.members.members.response.map((m) => {return { value: m.MemberID, label: m.MemberID }});
-    // const firstNames = this.props.members.members.response.map((m) => {return { value: m.first_name, label: m.first_name }})
-    // const lastNames = this.props.members.members.response.map((m) => {return { value: m.last_name, label: m.last_name }})
-
     return (
       <div>
         <div>
           <label>Member Id</label>
-          <input type="text" value={this.state.MemberId} onChange={this.handleMemberIdChange} />
+          <input
+            type="number"
+            min="0"
+            max="1000"
+            value={this.state.MemberId}
+            onChange={(event) => {this.handleMemberIdChange(event)}}
+          />
         </div>
         <div>
-          <label>FeePaid</label>
-          <input type="text" value={this.state.FeePaid} onChange={this.handleFeePaidChange} />
+          <label>Last Name</label>
+          <input
+            type="text"
+            value={this.state.lastName}
+            onChange={(event) => {this.handleLastNameChange(event)}} />
         </div>
         <div>
-          <label>BroughtBeer</label>
-          <input type="text" value={this.state.BroughtBeer} onChange={this.handleBroughtBeerChange} />
+          <label>First</label>
+          <input
+            type="text"
+            value={this.state.firstName}
+            onChange={(event) => {this.handleFirstNameChange(event)}} />
         </div>
+
         <button onClick={this.postTest}>Post Test</button>
         {table}
 
