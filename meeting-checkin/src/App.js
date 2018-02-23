@@ -5,7 +5,7 @@ import {Provider} from 'react-redux';
 import logo from './logo.svg';
 import './App.css';
 import membersReducer from './reducer';
-import MemberList from './memberList';
+import OldMemberList from './memberList';
 
 const store = createStore(combineReducers({
   members: membersReducer,
@@ -21,7 +21,7 @@ class App extends Component {
             <h1 className="App-title">Welcome to St. Louis Brews Meeting</h1>
           </header>
           <div className="App-intro">
-            <MemberList/>
+            <OldMemberList/>
           </div>
         </div>
       </Provider>
