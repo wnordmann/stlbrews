@@ -9,8 +9,6 @@ class OldMemberList extends React.Component {
     super(props);
     this.state = {
       MemberId: '',
-      FeePaid: '5',
-      BroughtBeer: '0',
       AttendedMeeting: '0',
       MonthNum: '0',
       YearNum: '0',
@@ -40,14 +38,25 @@ class OldMemberList extends React.Component {
   handleFirstNameChange = (event) => {
     this.setState({FirstName: event.target.value});
   }
-
-  checkIn(){
+  resetState() {
+    this.setState({
+      MemberId: '',
+      AttendedMeeting: '0',
+      MonthNum: '0',
+      YearNum: '0',
+      FirstName: '',
+      LastName: '',
+      selected: false,
+      filterData: [],
+    });
+  }
+  checkIn(memberId, feePaid=5, broughtBeer=0){
     const url = 'http://localhost:3000/api/v1/checkin';
     const today = new Date();
     const data = {
-      MemberId: this.state.MemberId,
-      FeePaid: this.state.FeePaid,
-      BroughtBeer: this.state.BroughtBeer,
+      MemberId: memberId,
+      FeePaid: feePaid,
+      BroughtBeer: broughtBeer,
       AttendedMeeting: '1',
       MonthNum: today.getMonth() + 1,
       YearNum: today.getFullYear(),
@@ -61,7 +70,7 @@ class OldMemberList extends React.Component {
       })
     }).then(res => res.json())
     .catch(error => console.error('Error:', error))
-    .then(response => console.log('Success:', response));
+    .then(response => this.resetState());
   }
   filterMemberData(filter){
     const members = this.props.members.members;
@@ -95,39 +104,32 @@ class OldMemberList extends React.Component {
     }
     return [];
   }
-  buildTable(){
+  render() {
     let filter = {
       FirstName: this.state.FirstName,
       LastName: this.state.LastName,
       MemberId: this.state.MemberId
     }
     const members = this.filterMemberData(filter);
-    const data = [];
-
-    if(this.props.members.members.length === members.length){
-      return false;
-    } else if(members.length > 0){
-      let postButton;
-      if(members.length === 1){
-        this.setState({
-          FirstName: members[0].firstName,
-          LastName: members[0].lastName,
-          MemberId: members[0].memberId,
-        });
-
-        postButton = (<button onClick={this.postTest}>Post Test</button>);
-      }
-      return (<MemberList list={members}/>)
+    let noBeerButton, withBeerButton
+    if (members.length === 1) {
+      noBeerButton = (<button onClick={() => {this.checkIn(members[0].memberId, 5, 0)} }>Paid Meeting Fee</button>);
+      withBeerButton = (<button onClick={() => {this.checkIn(members[0].memberId, 0 ,1)} }>Brought Beer</button>);
     }
-    return false;
-  }
-  render() {
-    const table = this.buildTable();
+    const current = this.state.MemberId;
+    document.onkeypress = (e) => {
+      e = e || window.event;
+      const digit = e.key;
+      if(e.target.nodeName === 'BODY' && digit.match(/[0-9]/i)){
+        this.setState({MemberId: current + digit});
+      }
+    };
     return (
       <div>
         <div>
           <label>Member Id</label>
           <input
+            className='memberId'
             type="number"
             min="0"
             max="1000"
@@ -149,8 +151,10 @@ class OldMemberList extends React.Component {
             value={this.state.lastName}
             onChange={(event) => {this.handleLastNameChange(event)}} />
         </div>
-        {table}
-      </div>
+          <MemberList list={members}/>
+          {noBeerButton}
+          {withBeerButton}
+        </div>
     );
   }
 }
