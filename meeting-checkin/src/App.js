@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import {createStore, combineReducers} from 'redux';
 import {Provider} from 'react-redux';
 
-import logo from './logo.svg';
 import './App.css';
 import membersReducer from './reducer';
 import OldMemberList from './memberList';

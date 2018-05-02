@@ -19,6 +19,7 @@ class OldMemberList extends React.Component {
     };
 
     this.checkIn = this.checkIn.bind(this);
+    this.friendship = this.friendship.bind(this);
   }
 
   componentWillMount(){
@@ -27,7 +28,8 @@ class OldMemberList extends React.Component {
       .then(response => response.json())
       .then((members) => {
         this.props.dispatch(setSelectedFeatures(members));
-      });
+      }).catch(error => console.error('Error:', error));
+
   }
   handleMemberIdChange = (event) => {
     this.setState({MemberId: event.target.value});
@@ -72,10 +74,48 @@ class OldMemberList extends React.Component {
     .catch(error => console.error('Error:', error))
     .then(response => this.resetState());
   }
+  friendship(memberId, friendship, friendshipLead, pulledpork){
+    const url = 'http://localhost:3000/api/v1/friendship';
+    const data = {
+      MemberId: memberId,
+      friendship: friendship,
+      friendshipLead: friendshipLead,
+      pulledpork: pulledpork,
+      reg_date: Date.now()
+    }
+
+    fetch(url, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: new Headers({
+        'Content-Type': 'application/json'
+      })
+    }).then(res => res.json())
+    .catch(error => console.error('Error:', error))
+    .then(response => this.resetState());
+  }
+  duesPaid(memberId){
+    const url = 'http://localhost:3000/api/v1/duespaid';
+    const data = {
+      MemberId: memberId,
+    }
+
+    fetch(url, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: new Headers({
+        'Content-Type': 'application/json'
+      })
+    }).then(res => res.json())
+    .catch(error => console.error('Error:', error))
+    .then(response => this.resetState());
+  }
   filterMemberData(filter){
     const members = this.props.members.members;
-    // const filter = this.state;
-    if(members.length > 0){
+
+    if (filter.FirstName === '' && filter.LastName === '' && filter.MemberId === ''){
+      return [];
+    } else if (members.length > 0){
       const filterData = [];
 
       // Set up regular expressions for each key value
@@ -90,6 +130,7 @@ class OldMemberList extends React.Component {
         const firstName = members[i].first_name;
         const lastName = members[i].last_name;
         const memberId = members[i].MemberID.toString();
+        const paid = members[i]['2018_Dues_Paid'];
 
         // Set up regular expressions for each key value
         // Check aginst values entered in the form and put into state
@@ -97,7 +138,7 @@ class OldMemberList extends React.Component {
         // Check regular expressions, only add data if the regex is good
         if(firstName.match(firstNameRegEx) && lastName.match(lastNameRegEx) && memberId.match(memberIdNameRegEx)){
           // build the table data
-          filterData.push ({memberId, firstName, lastName});
+          filterData.push ({memberId, firstName, lastName, paid});
         }
       }
       return filterData;
@@ -111,10 +152,14 @@ class OldMemberList extends React.Component {
       MemberId: this.state.MemberId
     }
     const members = this.filterMemberData(filter);
-    let noBeerButton, withBeerButton
+    let noBeerButton, withBeerButton, friendship, friendshipLead, pulledpork, paid;
     if (members.length === 1) {
       noBeerButton = (<button onClick={() => {this.checkIn(members[0].memberId, 5, 0)} }>Paid Meeting Fee</button>);
       withBeerButton = (<button onClick={() => {this.checkIn(members[0].memberId, 0 ,1)} }>Brought Beer</button>);
+      friendship = (<button onClick={() => {this.friendship(members[0].memberId, 1 ,0, 0)} }>Fiendship</button>);
+      friendshipLead = (<button onClick={() => {this.friendship(members[0].memberId, 1 ,1, 0)} }>Friendship Lead</button>);
+      pulledpork = (<button onClick={() => {this.friendship(members[0].memberId, 0 ,0 , 1)} }>Pulled Pork</button>);
+      paid = (<button onClick={() => {this.duesPaid(members[0].memberId)} }>Dues Paid</button>);
     }
     const current = this.state.MemberId;
     document.onkeypress = (e) => {
@@ -141,19 +186,20 @@ class OldMemberList extends React.Component {
           <label>First</label>
           <input
             type="text"
-            value={this.state.firstName}
+            value={this.state.FirstName}
             onChange={(event) => {this.handleFirstNameChange(event)}} />
         </div>
         <div>
           <label>Last Name</label>
           <input
             type="text"
-            value={this.state.lastName}
+            value={this.state.LastName}
             onChange={(event) => {this.handleLastNameChange(event)}} />
         </div>
           <MemberList list={members}/>
           {noBeerButton}
           {withBeerButton}
+          {paid}
         </div>
     );
   }
