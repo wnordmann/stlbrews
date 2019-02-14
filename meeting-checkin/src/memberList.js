@@ -130,6 +130,7 @@ class OldMemberList extends React.Component {
         const firstName = members[i].first_name;
         const lastName = members[i].last_name;
         const memberId = members[i].MemberID.toString();
+        const email = members[i].Email;
         const paid = members[i]['2018_Dues_Paid'];
 
         // Set up regular expressions for each key value
@@ -138,7 +139,7 @@ class OldMemberList extends React.Component {
         // Check regular expressions, only add data if the regex is good
         if(firstName.match(firstNameRegEx) && lastName.match(lastNameRegEx) && memberId.match(memberIdNameRegEx)){
           // build the table data
-          filterData.push ({memberId, firstName, lastName, paid});
+          filterData.push ({memberId, firstName, lastName, email, paid});
         }
       }
       return filterData;

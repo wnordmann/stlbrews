@@ -10,7 +10,7 @@ export default class MemberList extends React.Component {
       if(members[i].paid){
         paid = '*'
       }
-      data.push (<li key={members[i].memberId}>{members[i].memberId} - {members[i].firstName} - {members[i].lastName} {paid}</li>);
+      data.push (<li key={members[i].memberId}>{members[i].memberId} - {members[i].firstName} - {members[i].lastName} - {members[i].email}{paid}</li>);
     }
     return (
       <ul>
